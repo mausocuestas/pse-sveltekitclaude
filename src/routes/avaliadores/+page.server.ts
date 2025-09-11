@@ -40,7 +40,7 @@ export const actions = {
     try {
       await sql`
         INSERT INTO avaliador (usf_cnes, nome, cargo)
-        VALUES (${form.data.usf_cnes}, ${form.data.nome}, ${form.data.cargo})
+        VALUES (${form.data.usf_cnes}, ${form.data.nome}, ${form.data.cargo || null})
       `;
     } catch (error) {
       return fail(500, { form, error: 'Erro ao criar avaliador' });

@@ -4,7 +4,11 @@ declare global {
     interface Locals {}
     interface PageData {}
     interface Error {}
-    interface Platform {}
+    interface Platform {
+      env: {
+        DATABASE_URL: string;
+      };
+    }
   }
   
   // Declarando as variáveis de ambiente para o TypeScript
@@ -13,6 +17,10 @@ declare global {
       DATABASE_URL: string;
     }
   }
+}
+
+declare module '$env/static/private' {
+  export const DATABASE_URL: string;
 }
 
 export {};

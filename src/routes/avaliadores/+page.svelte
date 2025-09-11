@@ -7,7 +7,7 @@
   import { zodClient } from 'sveltekit-superforms/adapters';
   import { avaliadorSchema } from '$lib/schemas/avaliador';
 
-  export let data;
+  const { data } = $props();
 
   let showDialog = $state(false);
 
