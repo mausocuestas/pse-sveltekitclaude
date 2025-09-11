@@ -22,6 +22,10 @@
   let showDialog = $state(false);
   let atendimentoParaExcluir = $state<any>(null);
   let abaAtiva = $state('geral'); // geral, acuidade, antropometria, odonto
+  
+  // Helper variables for Select components that expect strings
+  let selectedAlunoId = $state('');
+  let selectedAvaliadorId = $state('');
 
   const { form, enhance } = superForm(data.form, {
     validators: zodClient(atendimentoSchema),
@@ -30,6 +34,56 @@
         showDialog = false;
         abaAtiva = 'geral';
       }
+    }
+  });
+
+  // Initialize nested objects for binding
+  $effect(() => {
+    if (!$form.acuidade) {
+      $form.acuidade = {
+        od: undefined,
+        oe: undefined,
+        od_reteste: undefined,
+        oe_reteste: undefined,
+        observacao: undefined
+      };
+    }
+    if (!$form.antropometria) {
+      $form.antropometria = {
+        peso: 0,
+        altura: 0,
+        observacoes: undefined
+      };
+    }
+    if (!$form.odonto) {
+      $form.odonto = {
+        risco: '',
+        art: undefined,
+        atf: undefined,
+        observacoes: undefined
+      };
+    }
+  });
+
+  // Sync helper variables with form
+  $effect(() => {
+    selectedAlunoId = $form.aluno_id?.toString() || '';
+  });
+
+  $effect(() => {
+    selectedAvaliadorId = $form.avaliador_id?.toString() || '';
+  });
+
+  // Update form when helper variables change
+  $effect(() => {
+    if (selectedAlunoId) {
+      $form.aluno_id = parseInt(selectedAlunoId);
+    }
+  });
+
+  $effect(() => {
+    if (selectedAvaliadorId) {
+      $form.avaliador_id = parseInt(selectedAvaliadorId);
     }
   });
 
@@ -337,13 +391,13 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <Label for="aluno_id">Aluno *</Label>
-              <Select bind:value={$form.aluno_id} name="aluno_id" required type="single">
+              <Select bind:value={selectedAlunoId} name="aluno_id" required type="single">
                 <SelectTrigger>
                   <span>Selecione o aluno</span>
                 </SelectTrigger>
                 <SelectContent>
                   {#each data.alunos as aluno}
-                    <SelectItem value={aluno.id}>
+                    <SelectItem value={aluno.id.toString()}>
                       {aluno.nome} - {aluno.escola} ({aluno.idade} anos)
                     </SelectItem>
                   {/each}
@@ -353,13 +407,13 @@
             
             <div>
               <Label for="avaliador_id">Avaliador *</Label>
-              <Select bind:value={$form.avaliador_id} name="avaliador_id" required type="single">
+              <Select bind:value={selectedAvaliadorId} name="avaliador_id" required type="single">
                 <SelectTrigger>
                   <span>Selecione o avaliador</span>
                 </SelectTrigger>
                 <SelectContent>
                   {#each data.avaliadores as avaliador}
-                    <SelectItem value={avaliador.id}>
+                    <SelectItem value={avaliador.id.toString()}>
                       {avaliador.nome} - {avaliador.usf}
                     </SelectItem>
                   {/each}
@@ -427,7 +481,7 @@
                   step="0.01"
                   min="0"
                   max="2"
-                  bind:value={$form.acuidade.od}
+                  bind:value={$form.acuidade!.od}
                   placeholder="Ex: 1.00"
                 />
               </div>
@@ -441,7 +495,7 @@
                   step="0.01"
                   min="0"
                   max="2"
-                  bind:value={$form.acuidade?.oe}
+                  bind:value={$form.acuidade!.oe}
                   placeholder="Ex: 1.00"
                 />
               </div>
@@ -455,7 +509,7 @@
                   step="0.01"
                   min="0"
                   max="2"
-                  bind:value={$form.acuidade?.od_reteste}
+                  bind:value={$form.acuidade!.od_reteste}
                 />
               </div>
               
@@ -468,7 +522,7 @@
                   step="0.01"
                   min="0"
                   max="2"
-                  bind:value={$form.acuidade?.oe_reteste}
+                  bind:value={$form.acuidade!.oe_reteste}
                 />
               </div>
             </div>
@@ -478,7 +532,7 @@
               <Textarea
                 id="acuidade_observacao"
                 name="acuidade.observacao"
-                bind:value={$form.acuidade?.observacao}
+                bind:value={$form.acuidade!.observacao}
                 placeholder="Observações sobre a avaliação visual"
                 maxlength={500}
               />
@@ -506,7 +560,7 @@
                   step="0.1"
                   min="5"
                   max="200"
-                  bind:value={$form.antropometria?.peso}
+                  bind:value={$form.antropometria!.peso}
                   placeholder="Ex: 45.5"
                 />
               </div>
@@ -520,7 +574,7 @@
                   step="0.01"
                   min="0.5"
                   max="2.5"
-                  bind:value={$form.antropometria?.altura}
+                  bind:value={$form.antropometria!.altura}
                   placeholder="Ex: 1.45"
                 />
               </div>
@@ -541,7 +595,7 @@
               <Textarea
                 id="antropometria_observacoes"
                 name="antropometria.observacoes"
-                bind:value={$form.antropometria?.observacoes}
+                bind:value={$form.antropometria!.observacoes}
                 placeholder="Observações sobre medidas antropométricas"
                 maxlength={500}
               />
@@ -562,7 +616,7 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <Label for="risco">Classificação de Risco *</Label>
-                <Select bind:value={$form.odonto?.risco} name="odonto.risco" type="single">
+                <Select bind:value={$form.odonto!.risco} name="odonto.risco" type="single">
                   <SelectTrigger>
                     <span>Selecione o risco</span>
                   </SelectTrigger>
@@ -579,7 +633,7 @@
                   <Checkbox 
                     id="art" 
                     name="odonto.art"
-                    bind:checked={$form.odonto?.art}
+                    bind:checked={$form.odonto!.art}
                   />
                   <Label for="art">ART (Tratamento Restaurador Atraumático)</Label>
                 </div>
@@ -588,7 +642,7 @@
                   <Checkbox 
                     id="atf" 
                     name="odonto.atf"
-                    bind:checked={$form.odonto?.atf}
+                    bind:checked={$form.odonto!.atf}
                   />
                   <Label for="atf">ATF (Aplicação Tópica de Flúor)</Label>
                 </div>
@@ -600,7 +654,7 @@
               <Textarea
                 id="odonto_observacoes"
                 name="odonto.observacoes"
-                bind:value={$form.odonto?.observacoes}
+                bind:value={$form.odonto!.observacoes}
                 placeholder="Observações sobre a avaliação odontológica"
                 maxlength={500}
               />

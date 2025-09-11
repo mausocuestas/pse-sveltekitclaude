@@ -63,7 +63,7 @@ export function classificarIMC(imc: number, idade: number, sexo: 'M' | 'F'): {
   }
 
   // Buscar dados CDC para idade específica
-  const referencia = CDC_BMI_REFERENCES.find(ref => ref.age === idade);
+  let referencia = CDC_BMI_REFERENCES.find(ref => ref.age === idade);
   if (!referencia) {
     // Interpolar entre idades próximas se necessário
     const idadeMenor = Math.floor(idade);
